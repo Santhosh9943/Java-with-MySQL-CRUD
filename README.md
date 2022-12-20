@@ -3,6 +3,7 @@
 FIRST CREAT A DATABASE FILE :
 
 crud.sql
+
 CREATE DATABASE IF NOT EXISTS crud;
 USE crud;
  
