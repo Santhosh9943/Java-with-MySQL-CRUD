@@ -1,6 +1,7 @@
 # Java-with-MySQL-CRUD
 
-To download raw file Click Here
+Output:
+
 MySQL Java CRUD Operation
 1. Insert
 2. Update
