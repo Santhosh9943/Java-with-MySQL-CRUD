@@ -2,9 +2,9 @@ package databaseMySql;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.ResultSet;
+import java.sql.PreparedStatement;
 import java.util.Scanner;
 
 public class MySqlCURD {
@@ -112,6 +112,7 @@ public class MySqlCURD {
 					break;
 				case 5:
 					System.out.println("Thank You");
+					con.close();
 					System.exit(0);
 					break;
 				default:
