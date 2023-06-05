@@ -2,128 +2,133 @@ package databaseMySql;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.Statement;
-import java.sql.ResultSet;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Scanner;
 
 public class MySqlCURD {
 
-	public static void main(String[] args) throws Exception {
-		Class.forName("com.mysql.jdbc.Driver");
-		String url = "jdbc:mysql://localhost:3306/crud?characterEncoding=utf8";
-		String username = "root";
-		String password = "0000";
-		Connection con = DriverManager.getConnection(url, username, password);
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/crud?characterEncoding=utf8";
+    private static final String DB_USERNAME = "root";
+    private static final String DB_PASSWORD = "0000";
 
-		Statement stmt = con.createStatement();
-		ResultSet rs;
-		PreparedStatement st;
+    public static void main(String[] args) {
+        try (Scanner scanner = new Scanner(System.in)) {
+            try (Connection connection = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD)) {
+                while (true) {
+                    System.out.println("MySQL Java CRUD Operation");
+                    System.out.println("Choose the Operation:");
+                    System.out.println("1. Insert");
+                    System.out.println("2. Update");
+                    System.out.println("3. Delete");
+                    System.out.println("4. Select");
+                    System.out.println("5. Exit");
+                    System.out.print("Enter your choice: ");
+                    int choice = scanner.nextInt();
+                    System.out.println("-----------------------------------------");
 
-		String qry = "";
-		int id, age, choice;
-		String name, city;
+                    switch (choice) {
+                        case 1:
+                            System.out.println("1. Insert New Data");
+                            insertData(connection, scanner);
+                            break;
+                        case 2:
+                            System.out.println("2. Update Data");
+                            updateData(connection, scanner);
+                            break;
+                        case 3:
+                            System.out.println("3. Delete Data");
+                            deleteData(connection, scanner);
+                            break;
+                        case 4:
+                            System.out.println("4. Print all Records");
+                            selectData(connection);
+                            break;
+                        case 5:
+                            System.out.println("Thank You");
+                            return;
+                        default:
+                            System.out.println("Invalid Selection");
+                            break;
+                    }
 
-		try (Scanner in = new Scanner(System.in); Scanner str = new Scanner(System.in)) {
-			while (true) {
-				System.out.println("MySQL Java CRUD Operation");
-				System.out.println("Choose the Number the Operation");
-				System.out.println("1. Insert");
-				System.out.println("2. Update");
-				System.out.println("3. Delete");
-				System.out.println("4. Select");
-				System.out.println("5. Exit");
-				System.out.print("Enter a choice: ");
-				choice = in.nextInt();
-				System.out.println("-----------------------------------------");
-				switch (choice) {
-				case 1:
-					System.out.println("1. Insert New Data");
+                    System.out.println("-----------------------------------------");
+                }
+            } catch (SQLException e) {
+                System.out.println("An error occurred while connecting to the database.");
+                e.printStackTrace();
+            }
+        }
+    }
 
-					System.out.println("Enter Name : ");
-					name = str.nextLine();
-					System.out.println("Enter Age : ");
-					age = in.nextInt();
-					System.out.println("Enter City : ");
-					city = str.nextLine();
+    private static void insertData(Connection connection, Scanner scanner) throws SQLException {
+        System.out.print("Enter Name: ");
+        String name = scanner.next();
+        System.out.print("Enter Age: ");
+        int age = scanner.nextInt();
+        System.out.print("Enter City: ");
+        String city = scanner.next();
 
-					qry = "insert into users (NAME,AGE,CITY) values(?,?,?)";
-					st = con.prepareStatement(qry);
-					st.setString(1, name);
-					st.setInt(2, age);
-					st.setString(3, city);
+        String query = "INSERT INTO users (NAME, AGE, CITY) VALUES (?, ?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, name);
+            statement.setInt(2, age);
+            statement.setString(3, city);
+            statement.executeUpdate();
+            System.out.println("Data Inserted Successfully");
+        }
+    }
 
-					st.executeUpdate();
-					System.out.println("Data Insert Success");
+    private static void updateData(Connection connection, Scanner scanner) throws SQLException {
+        System.out.print("Enter ID: ");
+        int id = scanner.nextInt();
+        scanner.nextLine();
+        System.out.print("Enter Name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter Age: ");
+        int age = scanner.nextInt();
+        System.out.print("Enter City: ");
+        String city = scanner.next();
 
-					break;
-				case 2:
-					System.out.println("2. Updating a Data");
+        String query = "UPDATE users SET NAME = ?, AGE = ?, CITY = ? WHERE ID = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, name);
+            statement.setInt(2, age);
+            statement.setString(3, city);
+            statement.setInt(4, id);
+            statement.executeUpdate();
+            System.out.println("Data Updated Successfully");
+        }
+    }
 
-					System.out.println("Enter ID : ");
-					id = in.nextInt();
-					System.out.println("Enter Name : ");
-					name = str.nextLine();
-					System.out.println("Enter Age : ");
-					age = in.nextInt();
-					System.out.println("Enter City : ");
-					city = str.nextLine();
+    private static void deleteData(Connection connection, Scanner scanner) throws SQLException {
+        System.out.print("Enter ID: ");
+        int id = scanner.nextInt();
 
-					qry = "update users set NAME=?,AGE=?,CITY=? where ID=?";
-					st = con.prepareStatement(qry);
+        String query = "DELETE FROM users WHERE ID = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, id);
+            statement.executeUpdate();
+            System.out.println("Data Deleted Successfully");
+        }
+    }
 
-					st.setString(1, name);
-					st.setInt(2, age);
-					st.setString(3, city);
-					st.setInt(4, id);
-					st.executeUpdate();
-					System.out.println("Data Update Success");
+    private static void selectData(Connection connection) throws SQLException {
+        String query = "SELECT * FROM users";
+        try (PreparedStatement statement = connection.prepareStatement(query);
+             ResultSet resultSet = statement.executeQuery()) {
+            System.out.printf("%-2s  %-20s  %-3s  %-10s%n", "ID", "Name", "Age", "City");
+            System.out.println("----------------------------------------");
+            while (resultSet.next()) {
+                int id = resultSet.getInt("ID");
+                String name = resultSet.getString("NAME");
+                int age = resultSet.getInt("AGE");
+                String city = resultSet.getString("CITY");
+                System.out.printf("%-2d  %-20s  %-3d  %-10s%n", id, name, age, city);
+            }
+        }
+    }
 
-					break;
-				case 3:
-					System.out.println("3. Deleting a Data");
-					System.out.println("Enter ID : ");
-					id = in.nextInt();
-
-					qry = "delete from users where ID=?";
-					st = con.prepareStatement(qry);
-					st.setInt(1, id);
-
-					st.executeUpdate();
-					System.out.println("Data Deleted Success");
-
-					break;
-				case 4:
-					System.out.println("4. Print all Records");
-					qry = "SELECT ID,NAME,AGE,CITY from users";
-					rs = stmt.executeQuery(qry);
-					while (rs.next()) {
-						id = rs.getInt("ID");
-						name = rs.getString("NAME");
-						age = rs.getInt("AGE");
-						city = rs.getString("CITY");
-
-						System.out.print(id + " ");
-						System.out.print(name + " ");
-						System.out.print(age + " ");
-						System.out.println(city + " ");
-
-					}
-					break;
-				case 5:
-					System.out.println("Thank You");
-					con.close();
-					System.exit(0);
-					break;
-				default:
-					System.out.println("Invalid Selection");
-					break;
-				}
-				System.out.println("-----------------------------------------");
-			}
-		} catch (Exception e) {
-			System.out.println("Enter correct Data type \n	  NOTE: \n		For Operation (Enter the Number of that Operation) \n		Type the \"id\"&\"Age\" in Numbers Only \n		Type the \"name\"&\"city\" in Letters \nExit and Run the Program again");
-		}
-	}
 
 }
